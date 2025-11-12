@@ -1,0 +1,10 @@
+[Unit]
+Description=Enable Wi-Fi via ConnMan at boot
+After=connman.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/libreelec/z83-wifi-autoon.sh
+
+[Install]
+WantedBy=multi-user.target

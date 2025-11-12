@@ -69,3 +69,6 @@
     if [ ${SYSTEM_SIZE} -lt 1024 ]; then
       SYSTEM_SIZE=1024
     fi
+
+  # additional packages to install
+    ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES z83-wifi"
