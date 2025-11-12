@@ -4,20 +4,31 @@ PKG_LICENSE="custom"
 PKG_SITE="local"
 PKG_URL=""
 PKG_SECTION="oem"
-PKG_SHORTDESC="MINIX Z83-4: brcmfmac43455 board-file alias + auto-enabled Wi-Fi"
-PKG_LONGDESC="Installs brcmfmac43455 board-file aliases for MINUX Z83-4 variants and enables Wi-Fi at boot."
+PKG_SHORTDESC="MINIX Z83-4: brcmfmac43455 board-file alias + auto-enable Wi-Fi"
+PKG_LONGDESC="Installs brcmfmac43455 board-file aliases for MINIX Z83-4 variants and enables Wi-Fi at boot."
+PKG_TOOLCHAIN="manual"
 
 makeinstall_target() {
-    mkdir -p $INSTALL/usr/lib/firmware/brcm
-    mkdir -p $INSTALL/usr/lib/systemd/system
-    mkdir -p $INSTALL/usr/lib/systemd/system-preset
-    mkdir -p $INSTALL/usr/lib/libreelec
+  local dst="$INSTALL/usr/lib/firmware/brcm"
+  mkdir -p "$dst" \
+           "$INSTALL/usr/lib/systemd/system" \
+           "$INSTALL/usr/lib/systemd/system-preset" \
+           "$INSTALL/usr/lib/libreelec"
 
-    cp -a $PKG_DIR/files/usr/lib/firmware/brcm/* $INSTALL/usr/lib/firmware/brcm/
-    cp -a $PKG_DIR/files/usr/lib/systemd/system/* $INSTALL/usr/lib/systemd/system/
-    cp -a $PKG_DIR/files/usr/lib/libreelec/* $INSTALL/usr/lib/libreelec
+  # firmware blobs you vendored
+  install -m 0644 "$PKG_DIR/files/usr/lib/firmware/brcm/brcmfmac43455-sdio.bin"      "$dst/"
+  install -m 0644 "$PKG_DIR/files/usr/lib/firmware/brcm/brcmfmac43455-sdio.clm_blob" "$dst/"
+  install -m 0644 "$PKG_DIR/files/usr/lib/firmware/brcm/brcmfmac43455-sdio.txt"      "$dst/"
 
-    echo "enable z83-wifi-autoon.service" > $INSTALL/usr/lib/systemd/system-preset/90-z83-wifi.preset
+  # create the exact MINIX alias (avoid storing spacey names in git)
+  ln -sf "brcmfmac43455-sdio.bin"  "$dst/brcmfmac43455-sdio.MINIX -Z83-4 Pro.bin"
+  cp -f  "$dst/brcmfmac43455-sdio.txt" "$dst/brcmfmac43455-sdio.MINIX -Z83-4 Pro.txt"
 
-    ln -sf brcmfmac43455-sdio.bin "$INSTALL/usr/lib/firmware/brcm/brcmfmac43455-sdio.MINIX -Z83-4 Pro.bin"
+  # oneshot to enable Wi-Fi after install/reset
+  install -m 0755 "$PKG_DIR/files/usr/lib/libreelec/z83-wifi-autoon.sh" \
+                   "$INSTALL/usr/lib/libreelec/"
+  install -m 0644 "$PKG_DIR/files/usr/lib/systemd/system/z83-wifi-autoon.service" \
+                   "$INSTALL/usr/lib/systemd/system/"
+  echo "enable z83-wifi-autoon.service" > \
+       "$INSTALL/usr/lib/systemd/system-preset/90-z83-wifi.preset"
 }
